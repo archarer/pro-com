@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
-import {LazyLoadList} from './components/lazyLoadList'
-import {ref} from 'vue'
-const mock = ref(new Array(20).fill(0))
-const isLoading = ref<boolean>(false)
-let page = 1
+import { ref } from 'vue';
+import HelloWorld from './components/HelloWorld.vue';
+import { LazyImage } from './components/lazyImage';
+import { LazyLoadList } from './components/lazyLoadList';
+const mock = ref(new Array(20).fill(0));
+const isLoading = ref<boolean>(false);
+let page = 1;
 const loadMore = () => {
-  if (isLoading.value) return
-  isLoading.value = true
+  if (isLoading.value) return;
+  isLoading.value = true;
   setTimeout(() => {
-    isLoading.value = false
-    mock.value = mock.value.concat(new Array(20).fill(page++))
-  }, 1000)
-}
+    isLoading.value = false;
+    mock.value = mock.value.concat(new Array(20).fill(page++));
+  }, 1000);
+};
 </script>
 
 <template>
@@ -27,13 +27,14 @@ const loadMore = () => {
 
   <main>
     <!-- <TheWelcome /> -->
-    <LazyLoadList
-    >
+    <LazyLoadList>
       <div class="item" v-for="it in mock">item{{ it }}</div>
       <!-- <template v-slot:pagination>
-        <div>外面的</div>
-      </template> -->
+            <div>外面的</div>
+          </template> -->
     </LazyLoadList>
+    <LazyImage
+      img-src="https://images.pexels.com/photos/13623247/pexels-photo-13623247.jpeg?auto=compress&cs=tinysrgb&w=800&lazy=load" />
     <!-- <div style="height: 20px" v-for="it in 60"></div> -->
   </main>
 </template>
