@@ -7,7 +7,7 @@ const props = withDefaults(defineProps<{
     hasScrollBar?: boolean
     height?: string
     usePaginationIndicator?: boolean
-    reachBottomDistance?: number
+    threshold?: number
     noMore?: boolean
     noMoreText?: string
     isLoading?: boolean
@@ -16,7 +16,7 @@ const props = withDefaults(defineProps<{
     hasScrollBar: true,
     height: '300px',
     usePaginationIndicator: false,
-    reachBottomDistance: 20,
+    threshold: 20,
     noMore: false,
     noMoreText: '已经到底啦！',
     isLoading: false
@@ -29,6 +29,8 @@ const containerEl = ref()
 const contentEl = ref()
 const footer = ref()
 let intersectionObserver: IntersectionObserver
+let scrollTimmer: any = null
+let scrollendTop = 0
 
 const useIntersectionObserver = () => {
     intersectionObserver = new IntersectionObserver((entries) => {
@@ -39,15 +41,13 @@ const useIntersectionObserver = () => {
         console.log('触底')
         props.onReachBottom && props.onReachBottom()
     }, {
-        root: containerEl.value
+        root: containerEl.value,
     })
     // 开始监听
     intersectionObserver.observe(footer.value)
 }
 
 const useOnScroll = () => {
-    // TO BE RESOLVE
-    // 使用throttle设置间隔时间过大时，快速滚动会导致内容已经触底但是事件没来得及触发
     containerEl.value.onscroll = throttle((e: Event) => {
         const target = e.target as HTMLElement
         // 容器高度
@@ -55,19 +55,28 @@ const useOnScroll = () => {
         // 滚动高度
         let scrollHeight = target.scrollHeight
         // 当前滚动高度 = 滚动距离 + 容器高度 + [触底阈值]
-        let currentHeight = target.scrollTop + offsetHeight + props.reachBottomDistance
+        let currentHeight = target.scrollTop + offsetHeight + props.threshold
         if (currentHeight >= scrollHeight) {
             if (props.noMore) return
             console.log('触底')
             props.onReachBottom && props.onReachBottom()
         }
-    }, 150)
+
+        // 使用定时器模拟滚动结束事件，当在100ms内未滚动表示当此滚动结束
+        // 用于解决因为节流，快速滚动导致内容已经触底但是事件没来得及触发的问题
+        // if(scrollTimmer) clearTimeout(scrollTimmer)
+        // scrollTimmer = setTimeout(() => {
+        //     console.log('hh')
+        //     scrollendTop = containerEl.value.scrollendTop
+        //     containerEl.value.scrollTop--
+        // }, 100)
+    }, 100)
 }
 
 const init = () => {
-    // 初始内容高度小于容器高度说明没有更多内容需要继续加载，则不同监听触底事件
+    // 初始内容高度小于容器高度说明没有更多内容需要继续加载，则不用监听触底事件
     if (!props.usePaginationIndicator && contentEl.value.offsetHeight > containerEl.value.offsetHeight) {
-        if (IntersectionObserver) {
+        if (!IntersectionObserver) {
             useIntersectionObserver()
         } else {
             useOnScroll()
@@ -100,7 +109,7 @@ onBeforeUnmount(() => {
                     <div class="pro-com-pagination" v-if="!slots.pagination && !noMore">more</div>
                 </div>
             </div>
-            <div class="pro-com-footer" ref="footer" :style="{height: reachBottomDistance + 'px'}" v-if="!usePaginationIndicator"></div>
+            <div class="pro-com-footer" ref="footer" :style="{height: threshold + 'px'}" v-if="!usePaginationIndicator"></div>
         </div>
     </div>
 </template>

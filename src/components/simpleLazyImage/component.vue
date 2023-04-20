@@ -2,7 +2,6 @@
 import { computed, onMounted, ref } from 'vue';
 import type { StyleValue } from 'vue'
 import longTextObj from '@/assets/longtext'
-import { throttle } from '@/tools';
 // to be resolve
 // 使用getBoundingClientRect时，无法指定滚动父级，目前只能用于document滚动
 const props = withDefaults(
@@ -22,10 +21,6 @@ const props = withDefaults(
 )
 const imgRef = ref()
 const src = ref<string>(props.defaultImage)
-const isSupportIntersectionObserver = !!IntersectionObserver
-let intersetionObserver: IntersectionObserver
-// 阈值
-const threshold = 20
 const computedStyle = computed(() => {
     if (typeof props.styles === 'string') {
         return props.styles + ` width: ${props.width}; height: ${props.height}`
@@ -50,50 +45,8 @@ const loadImage = () => {
     img.src = props.imgSrc
 }
 
-const clear = () => {
-    if (isSupportIntersectionObserver) {
-        intersetionObserver.unobserve(imgRef.value)
-    } else {
-        document.removeEventListener('scroll', isInView)
-    }
-}
-
-const useIntersectionObserver = () => {
-    intersetionObserver = new IntersectionObserver((entries) => {
-        if (entries[0].intersectionRatio <= 0) return
-        loadImage()
-        clear()
-    })
-    intersetionObserver.observe(imgRef.value)
-}
-
-const useBoundingRect = () => {
-    document.addEventListener('scroll', isInView)
-    
-}
-
-const isInView = throttle(() => {
-    const viewWidth = window.innerWidth || document.documentElement.clientWidth
-    const viewHeight = window.innerHeight || document.documentElement.clientHeight
-    const { top, right, bottom, left, width, height } = imgRef.value.getBoundingClientRect()
-    // 达到阈值就算在视口内
-    if (
-        top >= 0 &&
-        left >= 0 &&
-        right - width + threshold <= viewWidth &&
-        bottom - height + threshold <= viewHeight
-    ) {
-        loadImage()
-        clear()
-    }
-}, 150) 
-
 const init = () => {
-    if (isSupportIntersectionObserver) {
-        useIntersectionObserver()
-    } else {
-        useBoundingRect()
-    }
+    loadImage()
 }
 
 onMounted(() => {
