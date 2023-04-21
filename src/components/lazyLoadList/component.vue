@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onBeforeUnmount, onMounted, ref, useSlots } from 'vue';
+import { onBeforeUnmount, onMounted, ref, useSlots } from 'vue'
 import { throttle } from '../../tools'
 
 const props = withDefaults(defineProps<{
@@ -12,7 +12,7 @@ const props = withDefaults(defineProps<{
     noMoreText?: string
     isLoading?: boolean
 }>(), {
-    onReachBottom: () => {},
+    onReachBottom: () => { },
     hasScrollBar: true,
     height: '300px',
     usePaginationIndicator: false,
@@ -29,14 +29,13 @@ const containerEl = ref()
 const contentEl = ref()
 const footer = ref()
 let intersectionObserver: IntersectionObserver
-let scrollTimmer: any = null
-let scrollendTop = 0
+let limitScrollTriggerReachBottomFrequencyFlag = false
 
 const useIntersectionObserver = () => {
     intersectionObserver = new IntersectionObserver((entries) => {
         // 如果 intersectionRatio 为 0，则目标在视野外，
         // 我们不需要做任何事情。
-        if (entries[0].intersectionRatio <= 0) return;
+        if (entries[0].intersectionRatio <= 0) return
         if (props.noMore) return
         console.log('触底')
         props.onReachBottom && props.onReachBottom()
@@ -58,18 +57,15 @@ const useOnScroll = () => {
         let currentHeight = target.scrollTop + offsetHeight + props.threshold
         if (currentHeight >= scrollHeight) {
             if (props.noMore) return
+            if (limitScrollTriggerReachBottomFrequencyFlag) return
             console.log('触底')
-            props.onReachBottom && props.onReachBottom()
-        }
 
-        // 使用定时器模拟滚动结束事件，当在100ms内未滚动表示当此滚动结束
-        // 用于解决因为节流，快速滚动导致内容已经触底但是事件没来得及触发的问题
-        // if(scrollTimmer) clearTimeout(scrollTimmer)
-        // scrollTimmer = setTimeout(() => {
-        //     console.log('hh')
-        //     scrollendTop = containerEl.value.scrollendTop
-        //     containerEl.value.scrollTop--
-        // }, 100)
+            props.onReachBottom && props.onReachBottom()
+            limitScrollTriggerReachBottomFrequencyFlag = true
+            setTimeout(() => {
+                limitScrollTriggerReachBottomFrequencyFlag = false
+            }, 300)
+        }
     }, 100)
 }
 
@@ -90,7 +86,7 @@ const clear = () => {
 }
 
 onMounted(() => {
-    init() 
+    init()
 })
 onBeforeUnmount(() => {
     clear()
@@ -98,7 +94,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="pro-com-container" ref="containerEl" :style="{height: height}">
+    <div class="pro-com-container" ref="containerEl" :style="{ height: height }">
         <div class="pro-com-content" ref="contentEl">
             <slot name="default"></slot>
             <div class="pro-com-bottom-space">
@@ -109,7 +105,8 @@ onBeforeUnmount(() => {
                     <div class="pro-com-pagination" v-if="!slots.pagination && !noMore">more</div>
                 </div>
             </div>
-            <div class="pro-com-footer" ref="footer" :style="{height: threshold + 'px'}" v-if="!usePaginationIndicator"></div>
+            <div class="pro-com-footer" ref="footer" :style="{ height: threshold + 'px' }" v-if="!usePaginationIndicator">
+            </div>
         </div>
     </div>
 </template>

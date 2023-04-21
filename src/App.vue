@@ -32,9 +32,6 @@ const loadMore = () => {
     <!-- <TheWelcome /> -->
     <LazyLoadList>
       <div class="item" v-for="it in mock">item{{ it }}</div>
-      <!-- <template v-slot:pagination>
-                <div>外面的</div>
-              </template> -->
     </LazyLoadList>
     <div style="height: 20px" v-for="it in 60"></div>
     <SimpleLazyImage
